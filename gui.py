@@ -57,7 +57,6 @@ top = tk.Tk()
 top.geometry('800x600')
 top.title('交通标志识别')
 top.configure(background='#ffffff')
-
 label = Label(top, background='#ffffff', font=('Microsoft YaHei', 15, 'bold'))
 sign_image = Label(top)
 
