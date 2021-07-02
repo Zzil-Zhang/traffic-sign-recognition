@@ -92,6 +92,7 @@ def upload_image():
         sign_image.configure(image=im)
         sign_image.image = im
         label.configure(text='')
+        file_path = './data/cutting_sign/3.png'
         show_classify_button(file_path)
     except:
         pass
