@@ -6,7 +6,7 @@ from PIL import ImageTk, Image
 import numpy
 from keras.models import load_model
 
-model = load_model('traffic_classifier.h5')
+model = load_model('my_traffic_classifier.keras')
 
 classes = {1: '限速20km/h',
            2: '限速30km/h',
@@ -69,7 +69,7 @@ def classify(file_path):
     image = numpy.expand_dims(image, axis=0)
     image = numpy.array(image)
     print(image.shape)
-    pred = model.predict_classes([image])[0]
+    pred = numpy.argmax(model.predict(image), axis=-1)[0]
     sign = classes[pred + 1]
     print(sign)
     label.configure(foreground='#6AAFE6', text=sign)
@@ -77,7 +77,7 @@ def classify(file_path):
 
 def show_classify_button(file_path):
     classify_b = Button(top, text="识别", command=lambda: classify(file_path), padx=10, pady=5)
-    classify_b.configure(background='#6AAFE6', foreground='#6AAFE6', font=('Microsoft YaHei', 10, 'bold'))
+    classify_b.configure(background='#6AAFE6', foreground='white', font=('Microsoft YaHei', 10, 'bold'))
     classify_b.place(relx=0.79, rely=0.46)
 
 
@@ -85,21 +85,19 @@ def upload_image():
     try:
         file_path = filedialog.askopenfilename()
         uploaded = Image.open(file_path)
-        # uploaded = uploaded.convert('RGB')
         uploaded.thumbnail(((top.winfo_width() / 2.25), (top.winfo_height() / 2.25)))
         im = ImageTk.PhotoImage(uploaded)
 
         sign_image.configure(image=im)
         sign_image.image = im
         label.configure(text='')
-        file_path = './data/cutting_sign/3.png'
         show_classify_button(file_path)
     except:
         pass
 
 
 upload = Button(top, text="上传图像", command=upload_image, padx=10, pady=5)
-upload.configure(background='#6AAFE6', foreground='#6AAFE6', font=('Microsoft YaHei', 10, 'bold'))
+upload.configure(background='#6AAFE6', foreground='white', font=('Microsoft YaHei', 10, 'bold'))
 
 upload.pack(side=BOTTOM, pady=50)
 sign_image.pack(side=BOTTOM, expand=True)

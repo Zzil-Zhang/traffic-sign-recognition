@@ -6,7 +6,7 @@ import os
 from sklearn.model_selection import train_test_split
 from keras.utils import to_categorical
 from keras.models import Sequential
-from keras.layers import Conv2D, MaxPool2D, Dense, Flatten, Dropout
+from keras.layers import Conv2D, MaxPool2D, Dense, Flatten, Dropout, Input
 from sklearn.metrics import accuracy_score
 from keras.callbacks import TensorBoard
 
@@ -14,7 +14,7 @@ data = []
 labels = []
 classes = 43
 
-pc = "mac"  # 根据自己平台设置，mac表示苹果PC，win表示windowsPC
+pc = "win"  # 根据自己平台设置，mac表示苹果PC，win表示windowsPC
 
 cur_path = os.getcwd()
 
@@ -79,8 +79,10 @@ y_test = to_categorical(y_test, 43)
 
 # 建立模型
 model = Sequential()
+# 使用Input层作为第一层
+model.add(Input(shape=X_train.shape[1:]))
 # 添加卷积输入层 16个节点 5*5的卷积核大小
-model.add(Conv2D(filters=16, kernel_size=(3, 3), activation='relu', input_shape=X_train.shape[1:]))
+model.add(Conv2D(filters=16, kernel_size=(3, 3), activation='relu'))
 
 # 卷积层 + 最大池化层
 model.add(Conv2D(filters=32, kernel_size=(3, 3), activation='relu'))
@@ -103,12 +105,12 @@ model.add(Dense(43, activation='softmax'))
 # 编译模型 分类交叉熵损失函数 Adam优化器 这种搭配常用在多元分类中
 model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
-epochs = 1
+epochs = 11
 tensorboard = TensorBoard(log_dir='./log', histogram_freq=1, write_graph=True, write_images=True, update_freq="epoch")
 
 history = model.fit(X_train, y_train, batch_size=32, epochs=epochs, validation_data=(X_test, y_test),
                     callbacks=[tensorboard], verbose=2)
-model.save("my_traffic_classifier.h5")
+model.save("my_traffic_classifier.keras")
 
 # 绘制图形以确保准确性
 # 训练集准确率
@@ -147,7 +149,7 @@ for img in imgs:
 
 X_test = np.array(data)
 # test = np.argmax(X_test)
-pred = model.predict_classes(X_test)
+pred = np.argmax(model.predict(X_test), axis=-1)
 
 # 测试数据的准确性
 print(accuracy_score(labels, pred))
