@@ -9,57 +9,30 @@ from keras.models import Sequential
 from keras.layers import Conv2D, MaxPool2D, Dense, Flatten, Dropout, Input
 from sklearn.metrics import accuracy_score
 from keras.callbacks import TensorBoard
+from pathlib import Path
 
 data = []
 labels = []
 classes = 43
 
-pc = "win"  # 根据自己平台设置，mac表示苹果PC，win表示windowsPC
+cur_path = Path.cwd()
+log_path = cur_path / "log"
 
-cur_path = os.getcwd()
-
-log_path = ""
-
-if pc == "mac":
-    # 当前路径mac版
-    log_path = os.getcwd() + "/log"
-    print("当前平台" + pc)
-    # 检索图像及其标签
-    for i in range(classes):
-        path = os.path.join(cur_path, 'data/Train', str(i))
-        images = os.listdir(path)
-        print("正在加载第%d类训练图片" % (i + 1))
-        for a in images:
-            # mac版
-            try:
-                image = Image.open(path + '/' + a)
-                image = image.resize((30, 30))
-                image = np.array(image)
-                data.append(image)
-                labels.append(i)
-            except FileNotFoundError:
-                print("加载训练集图片出错！")
-
-elif pc == "win":
-    # 当前路径设置为win版
-    log_path = os.getcwd() + "\\log"
-    print("当前平台" + pc)
-    # 检索图像及其标签
-    for i in range(classes):
-        path = os.path.join(cur_path, 'data/Train', str(i))
-        images = os.listdir(path)
-        print("正在加载第%d类训练图片" % (i + 1))
-        for a in images:
-            try:
-                image = Image.open(path + '\\' + a)
-                image = image.resize((30, 30))
-                image = np.array(image)
-                data.append(image)
-                labels.append(i)
-            except FileNotFoundError:
-                print("加载训练集图片出错！")
-else:
-    raise Exception('print("路径设置出错！")')
+# 检索图像及其标签
+for i in range(classes):
+    path = cur_path / 'data' / 'Train' / str(i)
+    images = os.listdir(path)
+    print("正在加载第%d类训练图片" % (i + 1))
+    for a in images:
+        # mac版
+        try:
+            image = Image.open(path / a)
+            image = image.resize((30, 30))
+            image = np.array(image)
+            data.append(image)
+            labels.append(i)
+        except FileNotFoundError:
+            print("加载训练集图片出错！")
 
 # 将列表转换为numpy数组
 data = np.array(data)
