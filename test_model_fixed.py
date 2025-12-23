@@ -31,6 +31,142 @@ class_names_cn = [
 ]
 
 
+def preprocess_image_smart(image_path, model_input_size=(64, 64)):
+    """智能预处理：先检测标志区域，再调整大小"""
+    print(f"🔄 智能处理: {os.path.basename(image_path)}")
+
+    # 1. 读取图像
+    img = cv2.imread(image_path)
+    if img is None:
+        raise ValueError(f"无法读取图像: {image_path}")
+
+    img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    original_img = img_rgb.copy()
+    original_h, original_w = img_rgb.shape[:2]
+
+    print(f"  原始尺寸: {original_w}x{original_h}")
+
+    # 2. 尝试检测交通标志区域
+    detected = False
+    cropped_img = None
+
+    # 方法1：尝试用颜色检测
+    cropped_img, detection_img, bbox = detect_and_crop_sign(img_rgb)
+
+    if cropped_img is not None:
+        print(f"  ✅ 检测到标志区域: {cropped_img.shape[1]}x{cropped_img.shape[0]}")
+        detected = True
+    else:
+        # 方法2：如果检测失败，尝试用中心区域
+        print("  ⚠️ 未检测到标志，使用中心区域")
+
+        # 计算中心区域（假设标志在中央）
+        center_h, center_w = original_h // 2, original_w // 2
+        crop_size = min(original_h, original_w) // 2  # 取1/4大小
+
+        y1 = max(0, center_h - crop_size)
+        y2 = min(original_h, center_h + crop_size)
+        x1 = max(0, center_w - crop_size)
+        x2 = min(original_w, center_w + crop_size)
+
+        cropped_img = img_rgb[y1:y2, x1:x2]
+        print(f"  📏 使用中心区域: {cropped_img.shape[1]}x{cropped_img.shape[0]}")
+
+    # 3. 显示处理过程
+    fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+
+    axes[0].imshow(original_img)
+    axes[0].set_title(f'① 原始图像\n{original_w}x{original_h}', fontsize=11)
+    axes[0].axis('off')
+
+    axes[1].imshow(cropped_img)
+    axes[1].set_title(f'② 处理区域\n{cropped_img.shape[1]}x{cropped_img.shape[0]}', fontsize=11)
+    axes[1].axis('off')
+
+    # 4. 调整到模型输入大小
+    resized_img = cv2.resize(cropped_img, model_input_size)
+    axes[2].imshow(resized_img)
+    axes[2].set_title(f'③ 模型输入\n{model_input_size[0]}x{model_input_size[1]}', fontsize=11)
+    axes[2].axis('off')
+
+    plt.suptitle('图像预处理流程', fontsize=14, fontweight='bold')
+    plt.tight_layout()
+    plt.show()
+
+    # 5. 归一化
+    img_normalized = resized_img.astype(np.float32) / 255.0
+    img_normalized = np.expand_dims(img_normalized, axis=0)
+
+    return original_img, resized_img, img_normalized, detected
+
+
+def detect_and_crop_sign(img_rgb):
+    """检测交通标志区域（改进版）"""
+    # 转换为HSV颜色空间
+    img_hsv = cv2.cvtColor(img_rgb, cv2.COLOR_RGB2HSV)
+
+    # 检测红色（德国交通标志常见）
+    lower_red1 = np.array([0, 100, 100])
+    upper_red1 = np.array([10, 255, 255])
+    lower_red2 = np.array([160, 100, 100])
+    upper_red2 = np.array([180, 255, 255])
+
+    mask_red1 = cv2.inRange(img_hsv, lower_red1, upper_red1)
+    mask_red2 = cv2.inRange(img_hsv, lower_red2, upper_red2)
+    mask_red = cv2.bitwise_or(mask_red1, mask_red2)
+
+    # 检测蓝色
+    lower_blue = np.array([90, 100, 100])
+    upper_blue = np.array([130, 255, 255])
+    mask_blue = cv2.inRange(img_hsv, lower_blue, upper_blue)
+
+    # 检测黄色（警告标志）
+    lower_yellow = np.array([20, 100, 100])
+    upper_yellow = np.array([30, 255, 255])
+    mask_yellow = cv2.inRange(img_hsv, lower_yellow, upper_yellow)
+
+    # 合并所有颜色掩码
+    mask = cv2.bitwise_or(mask_red, mask_blue)
+    mask = cv2.bitwise_or(mask, mask_yellow)
+
+    # 形态学操作，去除噪声
+    kernel = np.ones((5, 5), np.uint8)
+    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+
+    # 如果有检测到颜色区域
+    if np.sum(mask) > 500:  # 阈值提高，避免小噪声
+        # 找到轮廓
+        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+        if contours:
+            # 找到最大的轮廓
+            largest_contour = max(contours, key=cv2.contourArea)
+            x, y, w, h = cv2.boundingRect(largest_contour)
+
+            # 确保区域合理
+            min_size = max(img_rgb.shape[0], img_rgb.shape[1]) // 20  # 至少是图像1/20
+            if w > min_size and h > min_size:
+                # 稍微扩大一点区域
+                padding = min(w, h) // 4
+                x = max(0, x - padding)
+                y = max(0, y - padding)
+                w = min(img_rgb.shape[1] - x, w + 2 * padding)
+                h = min(img_rgb.shape[0] - y, h + 2 * padding)
+
+                # 裁剪
+                cropped = img_rgb[y:y + h, x:x + w]
+
+                # 可视化检测结果
+                detection_img = img_rgb.copy()
+                cv2.rectangle(detection_img, (x, y), (x + w, y + h), (0, 255, 0), 3)
+                cv2.putText(detection_img, f"Detected: {w}x{h}", (x, y - 10),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+
+                return cropped, detection_img, (x, y, w, h)
+
+    return None, None, None
+
 def preprocess_image(image_path, target_size=(64, 64)):
     """正确的图像预处理"""
     # 读取图像
@@ -59,12 +195,35 @@ def preprocess_image(image_path, target_size=(64, 64)):
 
 
 def predict_with_explanation(image_path):
-    """带详细解释的预测"""
+    """带详细解释的预测（改进版）"""
     print(f"\n📸 正在识别: {os.path.basename(image_path)}")
 
     try:
-        # 预处理
-        original_img, resized_img, input_img = preprocess_image(image_path)
+        # === 改进：先显示原始图像信息 ===
+        img = cv2.imread(image_path)
+        if img is None:
+            raise ValueError(f"无法读取图像: {image_path}")
+
+        img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        original_h, original_w = img_rgb.shape[:2]
+        print(f"  原始尺寸: {original_w}x{original_h}")
+
+        # 如果图像很大，建议先裁剪
+        if original_h > 300 or original_w > 300:
+            print("  ⚠️ 图像较大，建议先裁剪标志区域")
+            print("  💡 你可以手动裁剪，或让程序自动检测")
+
+            response = input("  自动检测标志区域？(y/n): ").strip().lower()
+            if response == 'y':
+                # 使用智能预处理
+                original_img, resized_img, input_img, detected = preprocess_image_smart(image_path)
+            else:
+                # 使用原来的方法（直接resize）
+                print("  使用直接压缩方法（可能模糊）")
+                original_img, resized_img, input_img = preprocess_image(image_path)
+        else:
+            # 图像不大，直接处理
+            original_img, resized_img, input_img = preprocess_image(image_path)
 
         # 预测
         predictions = model.predict(input_img, verbose=0)
@@ -79,11 +238,12 @@ def predict_with_explanation(image_path):
         print(f"📊 置信度: {confidence:.2%}")
 
         if confidence < 0.5:
-            print("⚠️ 置信度较低！可能原因:")
-            print("  1. 图像不是德国交通标志")
-            print("  2. 图像质量差或尺寸不对")
-            print("  3. 标志不在43个训练类别中")
-            print("  4. 图像需要预处理（裁剪、调整大小）")
+            print("⚠️ 置信度较低！建议:")
+            print("  1. 手动裁剪图像，只保留交通标志")
+            print("  2. 确保标志清晰、正面拍摄")
+            print("  3. 检查是否是德国交通标志")
+
+        # ... 后面的显示代码不变 ...
 
         print(f"\n🏆 前三名预测:")
         for i, (idx, conf) in enumerate(zip(top3_indices, top3_confidences)):
@@ -266,7 +426,7 @@ def batch_test():
 
 def test_valid_image_folder():
     """测试valid_image文件夹"""
-    valid_dir = 'valid_image'
+    valid_dir = 'vaild_image'
 
     if not os.path.exists(valid_dir):
         print(f"📂 文件夹不存在: {valid_dir}/")
