@@ -8,7 +8,8 @@ import pandas as pd
 from pathlib import Path
 from sklearn.svm import LinearSVC
 from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import accuracy_score, classification_report
+from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
+from sklearn.metrics import accuracy_score, classification_report, precision_recall_fscore_support, confusion_matrix
 from skimage.feature import hog
 from skimage import color, exposure
 import pickle
@@ -17,6 +18,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import os
 from data_preprocessing import GTSRBDataLoader
+
 
 # 设置中文字体
 plt.rcParams['font.sans-serif'] = ['SimHei', 'Microsoft YaHei', 'Arial Unicode MS']
@@ -221,21 +223,23 @@ class OptimizedSVMClassifier:
         print(f"    迭代次数: {svm.n_iter_}")
 
         # 5. 验证集评估
-        print("\n5. 验证集评估...")
+        print("\n5. 验证集详细评估...")
         y_val_pred = svm.predict(X_val_scaled)
-        val_accuracy = accuracy_score(y_val, y_val_pred)
+        # 计算准确率、精确率、召回率、F1分数
+        accuracy = accuracy_score(y_val, y_val_pred)
+        precision, recall, f1, support = precision_recall_fscore_support(y_val, y_val_pred, average='weighted')
 
-        print(f"  验证集准确率: {val_accuracy:.4f}")
-        print(f"  随机基线准确率: {1 / len(np.unique(y_val)):.4f}")
-
+        print(f"  验证集准确率: {accuracy:.4f}")
+        print(f"  验证集精确率: {precision:.4f}")
+        print(f"  验证集召回率: {recall:.4f}")
+        print(f"  验证集F1-score: {f1:.4f}")
+   
         # 显示每个类别的准确率
-        print("\n  各类别准确率（前10类）:")
-        from sklearn.metrics import confusion_matrix
-        cm = confusion_matrix(y_val, y_val_pred)
-        class_accuracies = cm.diagonal() / cm.sum(axis=1)
-
-        for i in range(min(10, len(class_accuracies))):
-            print(f"    类别 {i}: {class_accuracies[i]:.4f}")
+        print("\n  每个类别的指标 (前10类):")
+        precision_per_class, recall_per_class, f1_per_class, support_per_class = precision_recall_fscore_support(y_val, y_val_pred)
+        
+        for i in range(min(10, len(precision_per_class))):
+            print(f"    类别 {i}: 精确率={precision_per_class[i]:.4f}, 召回率={recall_per_class[i]:.4f}, F1={f1_per_class[i]:.4f}")
 
         # 保存模型
         self.svm_model = svm
@@ -243,16 +247,19 @@ class OptimizedSVMClassifier:
         # 记录日志
         self.training_log.append({
             'n_samples': X_train.shape[0],
-            'n_features': n_features,
+            'n_features': X_train_scaled.shape[1],
             'n_classes': len(unique),
-            'val_accuracy': val_accuracy,
+            'val_accuracy': accuracy,
+            'val_precision': precision,
+            'val_recall': recall,
+            'val_f1': f1,
             'train_time': train_time,
             'hog_time': hog_time,
             'dual_used': use_dual,
-            'iterations': svm.n_iter_
+            'iterations': svm.n_iter_ if hasattr(svm, 'n_iter_') else 'N/A'
         })
 
-        return svm, val_accuracy
+        return svm, accuracy
 
     def predict(self, X):
         """预测"""
@@ -260,20 +267,128 @@ class OptimizedSVMClassifier:
         X_scaled = self.scaler.transform(X_hog)
         return self.svm_model.predict(X_scaled)
 
-    def evaluate(self, X_test, y_test):
-        """评估模型"""
+    def evaluate(self, X_test, y_test, save_dir='evaluation_results'):
+        """评估模型 - 返回所有指标"""
         print("\n" + "=" * 60)
         print("模型测试集评估")
         print("=" * 60)
 
+        # 创建保存目录
+        save_path = Path(save_dir)
+        save_path.mkdir(exist_ok=True)
+
         y_pred = self.predict(X_test)
         accuracy = accuracy_score(y_test, y_pred)
+        precision, recall, f1, _ = precision_recall_fscore_support(y_test, y_pred, average='weighted')
+
 
         print(f"测试集准确率: {accuracy:.4f}")
+        print(f"测试集精确率: {precision:.4f}")
+        print(f"测试集召回率: {recall:.4f}")
+        print(f"测试集F1-score: {f1:.4f}")
+
         print("\n分类报告:")
         print(classification_report(y_test, y_pred, digits=4))
 
-        return accuracy
+        # 混淆矩阵
+        cm = confusion_matrix(y_test, y_pred)
+        
+        # 绘制混淆矩阵图
+        print("\n生成混淆矩阵图...")
+        plt.figure(figsize=(12, 10))
+        sns.heatmap(
+            cm,
+            annot=True,
+            fmt='d',
+            cmap='Blues',
+            square=True,
+            cbar_kws={'label': '样本数量'}
+        )
+        plt.xlabel('预测类别', fontsize=12, fontweight='bold')
+        plt.ylabel('真实类别', fontsize=12, fontweight='bold')
+        plt.title('混淆矩阵', fontsize=14, fontweight='bold')
+        plt.tight_layout()
+        plt.savefig(save_path / 'confusion_matrix.png', dpi=300, bbox_inches='tight')
+        print(f"✓ 混淆矩阵图已保存: {save_path / 'confusion_matrix.png'}")
+        plt.close()
+        
+        # 绘制归一化混淆矩阵
+        cm_normalized = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+        cm_normalized = np.nan_to_num(cm_normalized)
+        
+        plt.figure(figsize=(12, 10))
+        sns.heatmap(
+            cm_normalized,
+            annot=True,
+            fmt='.2f',
+            cmap='Blues',
+            square=True,
+            cbar_kws={'label': '归一化比例'}
+        )
+        plt.xlabel('预测类别', fontsize=12, fontweight='bold')
+        plt.ylabel('真实类别', fontsize=12, fontweight='bold')
+        plt.title('归一化混淆矩阵', fontsize=14, fontweight='bold')
+        plt.tight_layout()
+        plt.savefig(save_path / 'confusion_matrix_normalized.png', dpi=300, bbox_inches='tight')
+        print(f"✓ 归一化混淆矩阵图已保存: {save_path / 'confusion_matrix_normalized.png'}")
+        plt.close()
+
+        # 绘制每个类别的性能指标图
+        print("生成每个类别的性能指标图...")
+        precision_per_class, recall_per_class, f1_per_class, support_per_class = precision_recall_fscore_support(y_test, y_pred)
+        
+        fig, axes = plt.subplots(1, 3, figsize=(18, 6))
+        
+        axes[0].bar(range(len(precision_per_class)), precision_per_class, 
+                   color='skyblue', edgecolor='black')
+        axes[0].set_xlabel('类别ID')
+        axes[0].set_ylabel('精确率')
+        axes[0].set_title('每个类别的精确率')
+        axes[0].grid(axis='y', alpha=0.3)
+        
+        axes[1].bar(range(len(recall_per_class)), recall_per_class, 
+                   color='lightgreen', edgecolor='black')
+        axes[1].set_xlabel('类别ID')
+        axes[1].set_ylabel('召回率')
+        axes[1].set_title('每个类别的召回率')
+        axes[1].grid(axis='y', alpha=0.3)
+        
+        axes[2].bar(range(len(f1_per_class)), f1_per_class, 
+                   color='salmon', edgecolor='black')
+        axes[2].set_xlabel('类别ID')
+        axes[2].set_ylabel('F1分数')
+        axes[2].set_title('每个类别的F1分数')
+        axes[2].grid(axis='y', alpha=0.3)
+        
+        plt.tight_layout()
+        plt.savefig(save_path / 'per_class_metrics.png', dpi=300, bbox_inches='tight')
+        print(f"✓ 每个类别的性能指标图已保存: {save_path / 'per_class_metrics.png'}")
+        plt.close()
+
+        # 保存每个类别的详细指标到CSV文件
+        class_names = [f'类别{i}' for i in range(len(precision_per_class))]
+        class_metrics_df = pd.DataFrame({
+            '类别ID': range(len(precision_per_class)),
+            '类别名称': class_names,
+            '精确率': precision_per_class,
+            '召回率': recall_per_class,
+            'F1分数': f1_per_class,
+            '支持度': support_per_class
+        })
+    
+        # 保存为CSV文件
+        class_metrics_df.to_csv(save_path / 'per_class_metrics.csv', index=False, encoding='utf-8-sig')
+        print(f"✓ 每个类别的详细指标已保存: {save_path / 'per_class_metrics.csv'}")
+        
+        return {
+            'accuracy': accuracy,
+            'precision': precision,
+            'recall': recall,
+            'f1': f1,
+            'classification_report': classification_report(y_test, y_pred, output_dict=True),
+            'confusion_matrix': cm,
+            'y_pred': y_pred
+        }
 
     def save_model(self, save_path='optimized_model'):
         """保存模型"""
@@ -401,7 +516,7 @@ def run_fixed_pipeline():
 
         # 6. 在测试集上评估
         print("\n6. 在测试集上评估...")
-        test_accuracy = best_classifier.evaluate(X_test, y_test)
+        evaluation_results = best_classifier.evaluate(X_test, y_test, save_dir='evaluation_results')
 
         # 7. 保存模型
         print("\n7. 保存模型...")
@@ -409,10 +524,13 @@ def run_fixed_pipeline():
 
         print("\n" + "=" * 60)
         print("训练完成！")
-        print(f"最终测试准确率: {test_accuracy:.4f}")
+        print(f"最终测试准确率: {evaluation_results['accuracy']:.4f}")
+        print(f"最终测试精确率: {evaluation_results['precision']:.4f}")
+        print(f"最终测试召回率: {evaluation_results['recall']:.4f}")
+        print(f"最终测试F1-score: {evaluation_results['f1']:.4f}")
         print("=" * 60)
 
-        return best_classifier
+        return best_classifier, evaluation_results
     else:
         print("\n✗ 所有配置都失败了")
         return None
