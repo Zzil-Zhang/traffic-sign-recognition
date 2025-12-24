@@ -267,7 +267,7 @@ class OptimizedSVMClassifier:
         X_scaled = self.scaler.transform(X_hog)
         return self.svm_model.predict(X_scaled)
 
-    def evaluate(self, X_test, y_test, save_dir='evaluation_results'):
+    def evaluate(self, X_test, y_test, save_dir='baseline_evaluation_results'):
         """评估模型 - 返回所有指标"""
         print("\n" + "=" * 60)
         print("模型测试集评估")
@@ -516,7 +516,7 @@ def run_fixed_pipeline():
 
         # 6. 在测试集上评估
         print("\n6. 在测试集上评估...")
-        evaluation_results = best_classifier.evaluate(X_test, y_test, save_dir='evaluation_results')
+        evaluation_results = best_classifier.evaluate(X_test, y_test, save_dir='baseline_evaluation_results')
 
         # 7. 保存模型
         print("\n7. 保存模型...")
