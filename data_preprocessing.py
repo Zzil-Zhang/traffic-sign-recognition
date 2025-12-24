@@ -220,112 +220,6 @@ class GTSRBDataLoader:
         return X_train, X_val, X_test, y_train, y_val, y_test
 
 
-class DataAugmentation:
-    """数据增强类 - 几何变换"""
-    
-    @staticmethod
-    def rotate_image(image, angle_range=(-15, 15)):
-        """旋转图像"""
-        angle = np.random.uniform(angle_range[0], angle_range[1])
-        h, w = image.shape[:2]
-        center = (w // 2, h // 2)
-        M = cv2.getRotationMatrix2D(center, angle, 1.0)
-        rotated = cv2.warpAffine(image, M, (w, h), borderMode=cv2.BORDER_REPLICATE)
-        return rotated
-    
-    @staticmethod
-    def shear_image(image, shear_range=(-0.2, 0.2)):
-        """错切变换"""
-        shear = np.random.uniform(shear_range[0], shear_range[1])
-        h, w = image.shape[:2]
-        
-        # 创建错切矩阵
-        M = np.float32([[1, shear, 0], [0, 1, 0]])
-        sheared = cv2.warpAffine(image, M, (w, h), borderMode=cv2.BORDER_REPLICATE)
-        return sheared
-    
-    @staticmethod
-    def perspective_transform(image, perspective_range=0.1):
-        """透视变换 - 模拟车载摄像头视角"""
-        h, w = image.shape[:2]
-        
-        # 定义原始四个角点
-        src_points = np.float32([[0, 0], [w, 0], [w, h], [0, h]])
-        
-        # 随机生成目标四个角点
-        offset = perspective_range * min(w, h)
-        dst_points = np.float32([
-            [np.random.uniform(-offset, offset), np.random.uniform(-offset, offset)],
-            [w + np.random.uniform(-offset, offset), np.random.uniform(-offset, offset)],
-            [w + np.random.uniform(-offset, offset), h + np.random.uniform(-offset, offset)],
-            [np.random.uniform(-offset, offset), h + np.random.uniform(-offset, offset)]
-        ])
-        
-        # 计算透视变换矩阵
-        M = cv2.getPerspectiveTransform(src_points, dst_points)
-        transformed = cv2.warpPerspective(image, M, (w, h), borderMode=cv2.BORDER_REPLICATE)
-        return transformed
-    
-    @staticmethod
-    def apply_augmentation(image, aug_types=['rotate', 'shear', 'perspective'], prob=0.5):
-        """
-        应用数据增强
-        
-        Args:
-            image: 输入图像
-            aug_types: 增强类型列表
-            prob: 应用增强的概率
-        """
-        if np.random.random() > prob:
-            return image
-        
-        aug_type = np.random.choice(aug_types)
-        
-        if aug_type == 'rotate':
-            return DataAugmentation.rotate_image(image)
-        elif aug_type == 'shear':
-            return DataAugmentation.shear_image(image)
-        elif aug_type == 'perspective':
-            return DataAugmentation.perspective_transform(image)
-        else:
-            return image
-    
-    @staticmethod
-    def augment_dataset(X, y, augment_factor=1):
-        """
-        对数据集进行增强
-        
-        Args:
-            X: 图像数组
-            y: 标签数组
-            augment_factor: 增强倍数（1表示不增强，2表示数据量翻倍）
-        
-        Returns:
-            X_augmented, y_augmented
-        """
-        if augment_factor <= 1:
-            return X, y
-        
-        X_augmented = [X]
-        y_augmented = [y]
-        
-        for _ in range(augment_factor - 1):
-            X_new = []
-            y_new = []
-            for i in range(len(X)):
-                aug_img = DataAugmentation.apply_augmentation(X[i].copy())
-                X_new.append(aug_img)
-                y_new.append(y[i])
-            X_augmented.append(np.array(X_new))
-            y_augmented.append(np.array(y_new))
-        
-        X_final = np.concatenate(X_augmented, axis=0)
-        y_final = np.concatenate(y_augmented, axis=0)
-        
-        print(f"✓ 数据增强完成: {len(X)} -> {len(X_final)} 样本")
-        return X_final, y_final
-
-
 def preprocess_pipeline():
     """完整的数据预处理流水线"""
     print("=" * 60)
@@ -358,16 +252,9 @@ def preprocess_pipeline():
         random_state=42
     )
     
-    # 可选：数据增强（仅对训练集）
-    print("\n4. 应用数据增强（可选）...")
-    use_augmentation = True  # 设置为False跳过增强
-    if use_augmentation:
-        X_train, y_train = DataAugmentation.augment_dataset(
-            X_train, y_train, augment_factor=1  # 1表示不增强，2表示翻倍
-        )
     
     # 保存预处理后的数据
-    print("\n5. 保存预处理数据...")
+    print("\n4. 保存预处理数据...")
     loader.save_processed_data(X_train, X_val, X_test, y_train, y_val, y_test)
     
     print("\n" + "=" * 60)
