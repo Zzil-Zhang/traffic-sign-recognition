@@ -5,6 +5,9 @@ evaluate_model.py - 模型评估脚本
 
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.rcParams['font.sans-serif'] = ['SimHei', 'Microsoft YaHei', 'Arial Unicode MS']
+matplotlib.rcParams['axes.unicode_minus'] = False
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 import seaborn as sns
 from keras.models import load_model
@@ -87,10 +90,16 @@ def plot_confusion_matrix(y_true, y_pred, max_classes=20):
     plt.show()
     
     # 计算每个类别的准确率
-    class_accuracies = np.diag(cm) / np.sum(cm, axis=1)
     print(f"\n前{max_classes}个类别的准确率:")
-    for i, acc in enumerate(class_accuracies):
-        print(f"  类别 {i:2d}: {acc:.2%}")
+    for i in range(max_classes):
+        # 检查该类别是否有样本
+        total_samples = np.sum(y_true_filtered == i)
+        if total_samples > 0:
+            correct_predictions = cm[i, i] if i < cm.shape[0] and i < cm.shape[1] else 0
+            accuracy = correct_predictions / total_samples
+            print(f"  类别 {i:2d}: {accuracy:.2%} ({correct_predictions}/{total_samples})")
+        else:
+            print(f"  类别 {i:2d}: 无测试样本")
 
 def plot_prediction_samples(model, X_test, y_true, y_pred, num_samples=10):
     """
@@ -126,7 +135,8 @@ def plot_prediction_samples(model, X_test, y_true, y_pred, num_samples=10):
     plt.suptitle('预测样本示例 (绿色=正确, 红色=错误)', fontsize=14, fontweight='bold')
     plt.tight_layout()
     plt.savefig('prediction_samples.png', dpi=150, bbox_inches='tight')
-    plt.show()
+    plt.show(block=False)  # 非阻塞显示
+    plt.pause(2)  # 显示2秒
 
 def compare_with_baseline(cnn_accuracy):
     """
@@ -169,7 +179,8 @@ def compare_with_baseline(cnn_accuracy):
     
     plt.tight_layout()
     plt.savefig('model_comparison.png', dpi=150, bbox_inches='tight')
-    plt.show()
+    plt.show(block=False)  # 非阻塞显示
+    plt.pause(2)  # 显示2秒
     
     # 判断是否达到要求
     if cnn_accuracy > baseline_accuracy:
@@ -190,6 +201,11 @@ if __name__ == "__main__":
     
     # 评估模型
     cnn_accuracy = evaluate_model(model_to_evaluate)
+    
+    # 如果评估失败（返回None），就不要再做基线对比，避免格式化错误
+    if cnn_accuracy is None:
+        print("评估失败，无法与基线模型进行对比。")
+        exit(1)
     
     # 与基准模型对比
     compare_with_baseline(cnn_accuracy)
