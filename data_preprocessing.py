@@ -222,9 +222,7 @@ class GTSRBDataLoader:
 
 def preprocess_pipeline():
     """完整的数据预处理流水线"""
-    print("=" * 60)
     print("GTSRB数据预处理流水线")
-    print("=" * 60)
     
     # 初始化数据加载器
     loader = GTSRBDataLoader(
@@ -257,9 +255,7 @@ def preprocess_pipeline():
     print("\n4. 保存预处理数据...")
     loader.save_processed_data(X_train, X_val, X_test, y_train, y_val, y_test)
     
-    print("\n" + "=" * 60)
-    print("数据预处理完成！")
-    print("=" * 60)
+    print("\n数据预处理完成！")
     
     return X_train, X_val, X_test, y_train, y_val, y_test
 

@@ -14,23 +14,19 @@ plt.rcParams['axes.unicode_minus'] = False
 
 def analyze_dataset():
     """分析GTSRB数据集"""
-    print("=" * 60)
     print("GTSRB数据集分析")
-    print("=" * 60)
     
     # 读取训练数据CSV
     train_csv_path = Path('data/Train.csv')
     train_df = pd.read_csv(train_csv_path)
     
     print("\n1. 数据集基本信息")
-    print("-" * 60)
     print(f"训练集总样本数: {len(train_df)}")
     print(f"类别数量: {train_df['ClassId'].nunique()}")
     print(f"类别范围: {train_df['ClassId'].min()} - {train_df['ClassId'].max()}")
     
     # 类别分布统计
     print("\n2. 类别分布统计")
-    print("-" * 60)
     class_counts = train_df['ClassId'].value_counts().sort_index()
     print(f"每个类别的样本数:")
     print(class_counts)
@@ -52,7 +48,6 @@ def analyze_dataset():
     
     # 图像尺寸统计
     print("\n3. 图像尺寸统计")
-    print("-" * 60)
     print(f"图像宽度统计:")
     print(f"  最小值: {train_df['Width'].min()}")
     print(f"  最大值: {train_df['Width'].max()}")
@@ -67,7 +62,6 @@ def analyze_dataset():
     
     # 绘制类别分布条形图
     print("\n4. 生成类别分布可视化图表")
-    print("-" * 60)
     
     plt.figure(figsize=(16, 8))
     bars = plt.bar(range(len(class_counts)), class_counts.values, 
@@ -105,9 +99,7 @@ def analyze_dataset():
     class_stats.to_csv('class_distribution_stats.csv', index=False, encoding='utf-8-sig')
     print("✓ 类别分布统计已保存: class_distribution_stats.csv")
     
-    print("\n" + "=" * 60)
-    print("数据分析完成！")
-    print("=" * 60)
+    print("\n数据分析完成！")
     
     return train_df, class_counts
 
