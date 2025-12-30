@@ -1,17 +1,17 @@
-# c_augment_data.py
+# data_augment_run.py
 import numpy as np
 from data_augmentation import AdvancedDataAugmentation
 import time
 
-print("=== 成员C：数据增强任务 ===")
+# 批量增强数据
 
-# 1. 加载成员A处理好的数据
+# 1. 加载处理好的数据
 try:
     X_train = np.load('processed_data/X_train.npy')
     y_train = np.load('processed_data/y_train.npy')
     print(f"✓ 加载成功！训练集: {len(X_train)} 张图片")
 except:
-    print("❌ 找不到数据！请先让成员A运行 data_preprocessing.py")
+    print("找不到数据！请先让成员A运行 data_preprocessing.py")
     exit()
 
 # 2. 检查数据格式

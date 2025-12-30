@@ -1,272 +1,155 @@
-# 数据增强模块使用说明
-
-## 📌 核心文件
-- `c_augment_data.py` - 批量增强主程序，生成正确数据集
-- `data_augmentation.py` - 增强算法库 看增强图片效果
-
-## 🔧 安装依赖
-```bash
-pip install numpy opencv-python matplotlib
-# 可选
-pip install albumentations torchvision
-```
-
-## 🚀 使用步骤
-
-### 1. 前置条件
-确保 `processed_data/` 目录已存在成员A处理的数据：
-- `X_train.npy`
-- `y_train.npy`
-
-### 2. 执行增强（成员C）
-```bash
-python c_augment_data.py
-```
-**结果：**
-- `processed_data/X_train_augmented.npy`
-- `processed_data/y_train_augmented.npy`
-- 数据量：原始数据×2
-
-### 3. 测试增强效果（可选）
-```bash
-python data_augmentation.py
-```
-生成可视化对比图 `data_augmentation_samples.png`
-
-## 🛠️ 增强类型
-- **几何增强**：旋转、平移、缩放、错切
-- **场景增强**：运动模糊、雨滴、阴影、亮度调整
-- **组合增强**：随机选择1-3种增强组合
-
-## 📊 输出
-- 增强后数据格式与原数据相同
-- 标签保持不变，数据量翻倍
-- 自动处理图像格式转换（uint8 ↔ float32）
-
-## ⚠️ 注意事项
-- 图像尺寸建议≥64×64
-- 如遇albumentations导入错误，仍可使用基础增强功能
-
-# 超参数调优
-运行`hyperparameter_tuning_final.py`
-
-本代码是成员C的任务，基于成员A的数据预处理和成员B的CNN模型进行超参数调优与交叉验证。通过系统化的参数搜索，找到最佳模型配置，提升德国交通标志识别准确率。
-
-核心功能：
-1. 复用现有代码：直接调用成员A的data_preprocessing.py和成员B的cnn_model.py
-
-2. 超参数优化：
-
-    K折交叉验证（评估模型稳定性）
-    
-    随机搜索（探索参数空间）
-    
-    系统化搜索（测试关键参数）
-    
-    分层搜索（先快速筛选，再精细调优）
-
-3. 参数分析：可视化分析超参数对模型性能的影响 最终训练：使用最佳参数训练完整模型
-
-超参数调优结果保存在 `hyperparameter_tuning_result/` 目录下：
-```text
-hyperparameter_tuning_result/
-├── kfold_analysis.png          # K折分析图
-├── search_analysis.png         # 超参数分析图
-├── final_training_curves.png   # Loss/Accuracy曲线
-├── random_search_results.json  # 详细搜索结果
-├── search_results.csv          # CSV格式结果
-├── final_tuning_report.json    # 最终训练报告
-└── kfold_results.json          # K折结果
-
-recommended_parameters_for_memberB.txt  # 根目录 给成员B的建议
-traffic_sign_model_tuned_*.keras # 根目录 训练好的模型文件
-```
-
-## 超参数调优菜单说明
-选择模型类型：标准CNN、简单CNN或参考模型
-
-运行调优方法：
-
-1. K折交叉验证（推荐5折）
-2. 随机搜索（推荐20次迭代）
-5. 使用最佳参数训练最终模型
-6. 查看当前最佳参数
-
-训练最终模型：使用找到的最佳参数
-
-导出建议：生成给成员B的参数配置文件
-```text
-# 步骤1: 选择模型类型
-请选择模型类型 (1/2/3, 默认1): 1
-请选择模型类型 (1/2/3, 默认1): 1
-
-📱 超参数调优菜单
-=====================================================================
-1. 📊 K折交叉验证 (评估模型稳定性)
-2. 🔍 随机搜索 (寻找最佳超参数)
-3. 🔬 系统化搜索 (系统测试关键参数)
-4. 🏗️  分层搜索 (推荐，更高效)
-5. 🚀 使用最佳参数训练最终模型
-6. 📈 查看当前最佳参数
-7. 📤 生成给成员B的参数建议
-8. 🚪 退出
-=====================================================================
-请选择 (1-8): 1
-
-折数 (默认5): 5
-每折训练轮数 (默认10): 5
-批大小 (默认32): 32
-... 运行 ...
-# 步骤2: 运行随机搜索（全面调优）
-## CPU训练/性能一般的GPU
-请选择 (1-8): 2
-迭代次数 (默认20): 20
-交叉验证折数 (默认3): 3
-每轮训练轮数 (默认5): 5
-
-# 步骤3: 查看最佳参数
-请选择 (1-8): 6
-
-# 步骤4: 使用最佳参数训练（生成Loss/Accuracy曲线）
-请选择 (1-8): 5
-训练轮数 (默认30): 25
-
-# 步骤5: 生成建议报告
-请选择 (1-8): 7
-
-# 步骤6: 退出
-请选择 (1-8): 8
-```
-
-图表1: K折交叉验证分析图 (kfold_analysis.png)
-左侧: 各折准确率柱状图
-
-右侧: 各折验证准确率曲线
-
-显示: 模型稳定性、方差大小
-
-图表2: 超参数搜索结果分析图 (search_analysis.png)
-包含四个子图：
-
-学习率 vs 准确率 (散点图 + log尺度)
-
-批大小 vs 准确率 (散点图)
-
-优化器对比 (柱状图)
-
-Dropout率组合影响 (二维散点图，颜色表示准确率)
-
-图表3: 最终训练曲线 (final_training_curves.png)
-左侧: 训练/测试准确率曲线
-
-右侧: 训练/测试损失曲线
-
-显示: 收敛过程、是否过拟合
-
-### 超参数调优日志
-2025-12-22 
-```bash
-D:\software\python\anaconda3\envs\traffic-sign-recognition\python.exe D:\python\pythonProject\traffic-sign-recognition-learn\hyperparameter_tuning_advanced.py 
-TensorFlow版本: 2.13.0
-======================================================================
-交通标志CNN模型 - 高级超参数调优
-======================================================================
-B的基线准确率: 0.997450
-B的基线参数: 学习率=0.001, 批大小=32, 优化器=Adam, Dropout=0.25/0.5
-
-[1] 加载预处理数据...
-✓ 训练数据: (27446, 64, 64, 3), 样本数: 27446
-
-[3] 开始超参数调优 (K折交叉验证)...
-    每个参数组合进行 3 折验证
-    每折最多训练 15 个epochs
-----------------------------------------------------------------------
-
-[2] 设计超参数实验方案...
-  实验组1: 学习率调优 (B的基线: 0.001)
-  实验组2: 批大小调优 (B的基线: 32)
-  实验组3: 优化器对比 (B的基线: Adam)
-  实验组4: Dropout率调优 (B的基线: 0.25/0.5)
-  实验组5: 最佳组合探索
-  总共设计 26 个实验
-
->>> 对照组: B的基线参数
-
-   正在测试: LR=0.001000, BS=32, Opt=adam, Dropout=0.25/0.5
-2025-12-21 22:16:00.319552: I tensorflow/core/platform/cpu_feature_guard.cc:182] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
-To enable the following instructions: SSE SSE2 SSE3 SSE4.1 SSE4.2 AVX AVX2 AVX_VNNI FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
-      折1: 准确率=0.991584, 时间=1205.0s |       折2: 准确率=0.993988, 时间=1137.2s |       折3: 准确率=0.992348, 时间=988.4s | 
-      → 平均准确率: 0.992640 ± 0.001003
-
-✓ B的基线K折结果: 0.992640 ± 0.001003
-
->>> 实验 1: 学习率实验: 0.01
-
-   正在测试: LR=0.010000, BS=32, Opt=adam, Dropout=0.25/0.5
-      折1: 准确率=0.986556, 时间=1699.4s |       折2: 准确率=0.985791, 时间=1614.1s |       折3: 准确率=0.990818, 时间=1880.0s | 
-      → 平均准确率: 0.987721 ± 0.002212
-
->>> 实验 2: 学习率实验: 0.005
-
-   正在测试: LR=0.005000, BS=32, Opt=adam, Dropout=0.25/0.5
-      折1: 准确率=0.992567, 时间=1260.1s |       折2: 准确率=0.982402, 时间=1222.5s |       折3: 准确率=0.990927, 时间=1226.6s | 
-      → 平均准确率: 0.988632 ± 0.004456
-
->>> 实验 3: 学习率实验: 0.001
-
-   正在测试: LR=0.001000, BS=32, Opt=adam, Dropout=0.25/0.5
-      折1: 准确率=0.991365, 时间=1216.2s |       折2: 准确率=0.993661, 时间=1267.9s |       折3: 准确率=0.994753, 时间=1167.2s | 
-      → 平均准确率: 0.993260 ± 0.001412
-
->>> 实验 4: 学习率实验: 0.0005
-
-   正在测试: LR=0.000500, BS=32, Opt=adam, Dropout=0.25/0.5
-      折1: 准确率=0.992786, 时间=965.9s |       折2: 准确率=0.994426, 时间=1207.8s |       折3: 准确率=0.995190, 时间=1206.7s | 
-      → 平均准确率: 0.994134 ± 0.001003
-
->>> 实验 5: 学习率实验: 0.0001
-
-   正在测试: LR=0.000100, BS=32, Opt=adam, Dropout=0.25/0.5
-      折1: 准确率=0.992567, 时间=1258.6s |       折2: 准确率=0.993551, 时间=1247.2s |       折3: 准确率=0.993004, 时间=1237.7s | 
-      → 平均准确率: 0.993041 ± 0.000402
-
->>> 实验 6: 学习率实验: 5e-05
-
-   正在测试: LR=0.000050, BS=32, Opt=adam, Dropout=0.25/0.5
-      折1: 准确率=0.984916, 时间=1226.7s |       折2: 准确率=0.989944, 时间=1199.0s |       折3: 准确率=0.987538, 时间=1253.3s | 
-      → 平均准确率: 0.987466 ± 0.002053
-
->>> 实验 7: 批大小实验: 8
-
-   正在测试: LR=0.001000, BS=8, Opt=adam, Dropout=0.25/0.5
-      折1: 准确率=0.993005, 时间=2317.0s |       折2: 准确率=0.994863, 时间=2274.2s |       折3: 准确率=0.994753, 时间=2249.3s | 
-      → 平均准确率: 0.994207 ± 0.000851
-
->>> 实验 8: 批大小实验: 16
-
-   正在测试: LR=0.001000, BS=16, Opt=adam, Dropout=0.25/0.5
-      折1: 准确率=0.993988, 时间=1597.7s |       折2: 准确率=0.993551, 时间=2576.2s | Traceback (most recent call last):
-...
-tensors = pywrap_tfe.TFE_Py_Execute(ctx._handle, device_name, op_name,
-KeyboardInterrupt
-
-```
-
-# Panndel版本
-1. 先测试环境：
-bash
-python test_paddle_minimal.py
-2. 训练模型：
-bash
-python train_cnn_paddle.py
-3. 评估模型：
-bash
-python evaluate_model_paddle.py
-4. 交互式测试：
-bash
-python test_model_paddle.py
-5. 超参数调优（您的任务）：
-bash
-python hyperparameter_tuning.py
-
-
+# 飞桨交通标志项目说明（评估与超参调优）
+
+主要功能：
+- 评估已训练的飞桨 CNN 模型，并与基准 SVM+HOG 模型对比（含混淆矩阵、预测样本、ROC 对比、F1 指标等）
+- 对 CNN 模型进行超参数调优与 K 折交叉验证（包含过拟合/欠拟合分析和可视化）
+
+---
+
+## 目录结构与关键文件
+
+请确保以下文件存在于同一项目根目录中（或在 README 指定的路径下）：
+
+- 评估脚本与 Notebook
+  - `evaluate_model_paddle.py`（命令行脚本，直接运行）
+  - `evaluate-model.ipynb`（Jupyter 版本，分步骤执行）
+- 超参数调优
+  - `hyperparameter_tuning_final_paddle.py`（命令行脚本）
+  - `hyperparameter_tuning_final_paddle.ipynb`（Jupyter 版本）
+- 训练/数据/基准依赖
+  - `data_utils.py`（数据加载与预处理）
+  - `cnn_model_paddle.py`（模型结构定义：SimpleCNNPaddle / TrafficCNNPaddle 等）
+  - `baseline_model_fixed.py`（基准 SVM+HOG 模型与评估工具）
+  - 处理好的数据集（必须存在）
+    - `/home/aistudio/work/processed_data/` 目录下包含：
+      - `X_train.npy`, `y_train.npy`
+      - `X_val.npy`, `y_val.npy`
+      - `X_test.npy`, `y_test.npy`
+  - 训练好的 CNN 参数文件（至少存在一个）
+    - 常见路径（脚本会自动查找）
+      - `trained_models/traffic_sign_cnn_paddle_final_*.pdparams`
+      - `trained_models/traffic_sign_cnn_paddle_best_*.pdparams`
+      - `trained_models/my_traffic_classifier_paddle.pdparams`
+      - 或项目根目录的 `my_traffic_classifier_paddle.pdparams`, `model_final.pdparams`, `my_traffic_classifier.pdparams`
+  - 基准模型文件（可选，如不存在自动跳过基准评估）
+    - `/home/aistudio/work/fixed_baseline_model/model.pkl`
+
+---
+
+## 环境要求
+
+- Python 3.8+（建议 >=3.10）
+- PaddlePaddle
+  - CPU 环境（通用）：`pip install paddlepaddle`
+  - GPU 环境（若为依图加速卡 iluvatar）：需安装 Paddle 自定义设备插件（环境可能已预装）
+    - 参考你所在平台的安装说明；脚本会自动尝试设置 `iluvatar_gpu:0`，失败则回退到 CPU
+- 其他依赖包
+  - `pip install numpy matplotlib seaborn scikit-learn ipython`
+  - 如需使用中文字体显示（可选）：系统安装 `WenQuanYi` 或 `SimHei` 等字体
+
+注意：
+- 若你不使用依图加速卡，可将脚本中的 `paddle.set_device('iluvatar_gpu:0')` 改为 `paddle.set_device('gpu')` 或保持自动回退到 `cpu`。
+- Jupyter Notebook 中使用了 `IPython.display` 的 `Markdown`，确保 `ipython` 已安装。
+
+---
+
+## 快速开始（命令行）
+
+1. 安装依赖（示例）
+   ```bash
+   python -m venv .venv && source .venv/bin/activate  # Windows 用 .venv\Scripts\activate
+   pip install paddlepaddle numpy matplotlib seaborn scikit-learn ipython
+   ```
+2. 准备数据与模型（确保路径与文件存在）
+   - 数据：`/home/aistudio/work/processed_data/` 下的 `X_*`、`y_*` `.npy`
+   - 基准：`/home/aistudio/work/fixed_baseline_model/model.pkl`（可选）
+   - CNN 参数：参考前述模型文件路径
+3. 评估 CNN 与（可选）基准 SVM+HOG
+   ```bash
+   python evaluate_model_paddle.py
+   ```
+   成功运行后，将在 `evaluation_results/` 目录下生成：
+   - `confusion_matrix.png`（混淆矩阵）
+   - `prediction_samples.png`（预测样本示例）
+   - `model_comparison_metrics.png`（指标对比：Accuracy / F1）
+   - `roc_overlay.png`（CNN vs 基准微平均 ROC）
+   - `baseline_evaluation_results/`（若基准存在，生成其详细评估输出）
+
+4. 超参数调优（交互式菜单）
+   ```bash
+   python hyperparameter_tuning_final_paddle.py
+   ```
+   按提示选择：
+   - `K折交叉验证`
+   - `随机搜索`
+   - `分层搜索`
+   输出保存到：
+   - `/home/aistudio/work/hyperparameter_tuning_result/`（各类图表与 JSON/CSV 结果）
+   - `/home/aistudio/work/recommended_parameters_for_memberB.txt`（给成员B的参数建议）
+
+---
+
+## 快速开始（Jupyter Notebook）
+
+### 评估 Notebook：`evaluate-model.ipynb`
+
+按顺序运行，确保不遗漏定义与依赖：
+
+1. 导入和全局配置（字体/设备设置，依赖导入）
+2. 导入项目模块（`data_utils.py`、`cnn_model_paddle.py`、`baseline_model_fixed.py`）
+3. 数据加载与预处理（加载 `processed_data/*.npy` 并应用与训练一致的预处理）
+4. 基础工具函数（务必运行，确保后续函数可用）
+   - 包含：`compute_multiclass_auc`、`RenameUnpickler`、`prepare_pickle_class_aliases`、`to_hwc_batch`、`ensure_unit_range` 等
+   - 注意：若你将工具函数单元格标注为“注释示例”，请取消注释或保证其它单元格有相同函数定义，并在执行 `evaluate_cnn_model` 之前已经运行
+5. 加载模型（自动搜索 CNN 参数文件）
+6. 评估 CNN（打印损失/准确率/分类报告，生成图表）
+7. 基准评估（若基准存在：加载 model.pkl 并评估/生成图表）
+8. 指标对比与 ROC 曲线
+9. 一致性验证与汇总文件（保存 `evaluation_results/metrics_summary.json`）
+
+运行建议：
+- 使用 `Kernel -> Restart & Run All`，确保函数定义的单元格先于使用位置执行
+- 若出现 `NameError: compute_multiclass_auc not defined`，说明未运行包含该函数的单元格。请在“评估 CNN 模型”单元格之前执行“基础工具函数”（或任何包含该函数定义的单元格）
+
+### 调优 Notebook：`hyperparameter_tuning_final_paddle.ipynb`
+
+按顺序运行：
+1. 设备设置（若有依图 GPU，将自动使用；否则回退到 CPU）
+2. 超参数调优器定义（包含 K 折交叉验证、随机搜索、分层搜索等）
+3. 执行相应函数进行调优
+4. 输出图表与结果文件位于 `/home/aistudio/work/hyperparameter_tuning_result/`
+
+---
+
+## 路径与参数约定
+
+- 数据目录（必须）：`/home/aistudio/work/processed_data/`
+  - 若你的数据目录不同，请修改脚本/Notebook 中相应路径（例如 `data_path` 变量）
+- 基准模型（可选）：`/home/aistudio/work/fixed_baseline_model/model.pkl`
+  - 若文件不存在，会自动跳过基准评估，不影响 CNN 评估流程
+- 模型参数文件（至少存在一个）
+  - 脚本/Notebook 会自动搜索常见文件名；也可在 `evaluate_model()` 中显式传入路径
+- 输出目录
+  - 评估：`evaluation_results/`（脚本自动创建）
+  - 调优：`/home/aistudio/work/hyperparameter_tuning_result/`（脚本自动创建）
+
+---
+
+## 常见问题与解决
+
+- 设备错误（iluvatar GPU 未找到）
+  - 日志类似：`无法设置依图加速卡设备，使用CPU`
+  - 说明环境未安装或未识别自定义设备插件；脚本已自动回退 CPU，可正常运行
+  - 若希望使用 GPU：请按平台要求安装 `paddle_custom_device` 并配置 `CUSTOM_DEVICE_ROOT`
+- `NameError: compute_multiclass_auc not defined`
+  - 说明未执行包含该函数定义的单元格（或该单元格被注释）
+  - 解决：在 Notebook 中，确保“基础工具函数”单元格已执行；或将该函数定义上移到更早的单元格，并执行
+- 找不到模型参数文件
+  - 确保至少存在一个 `.pdparams` 文件，并在约定路径中；或修改评估函数里 `possible_models` 列表以匹配你的文件名
+- 找不到基准模型（不会阻塞）
+  - 若日志提示：`未找到基准模型文件，跳过基准评估`，仅影响与 SVM+HOG 的对比，不影响 CNN 评估
+- 字体与中文显示异常（图表中中文乱码）
+  - 脚本会自动选择已安装字体；若无中文字体，则使用 `DejaVu Sans`
+  - 可在系统安装 `WenQuanYi` 或 `SimHei` 字体以获得更佳显示
+
+---

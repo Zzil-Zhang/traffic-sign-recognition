@@ -188,7 +188,6 @@ class AdvancedDataAugmentation:
         """阴影效果 - 模拟树木/建筑物遮挡"""
         h, w, c = image.shape
 
-        # 修复：确保半径范围有效
         min_dim = min(w, h)
         # 确保最小半径不超过最大半径
         min_radius = max(5, min_dim // 20)  # 至少5像素
@@ -480,7 +479,7 @@ def test_augmentations():
     print(f"\n生成可视化对比图...")
     try:
         aug.visualize_augmentations(display_original, augmented_images, titles,
-                                    save_path='data_augmentation_samples.png')
+                                    save_path='augmentation_details_20251225_103725/data_augmentation_samples.png')
     except Exception as e:
         print(f"可视化失败: {e}")
         # 尝试简化版可视化
