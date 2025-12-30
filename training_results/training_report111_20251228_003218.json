@@ -1,0 +1,24 @@
+{
+    "model_name": "traffic_sign_cnn_paddle",
+    "timestamp": "20251228_003218",
+    "image_size": [
+        64,
+        64
+    ],
+    "training_time_seconds": 5675.275588,
+    "training_epochs": 50,
+    "final_train_accuracy": 0.9744749124854143,
+    "final_val_accuracy": 0.9972793742560789,
+    "train_val_gap": -0.02280446177066464,
+    "best_val_accuracy": 0.997619452474069,
+    "test_accuracy": 0.9960897653859232,
+    "test_samples": 5882,
+    "overfitting_status": "优秀泛化",
+    "device": "iluvatar_gpu:0",
+    "parameters": {
+        "batch_size": 32,
+        "learning_rate": 0.001,
+        "weight_decay": 0.0005,
+        "patience": 15
+    }
+}
