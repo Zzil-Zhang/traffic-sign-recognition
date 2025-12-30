@@ -1,0 +1,2 @@
+﻿n_samples,n_features,n_classes,val_accuracy,val_precision,val_recall,val_f1,train_time,hog_time,dual_used,iterations
+27446,972,43,0.9549396361163067,0.9548443430471791,0.9549396361163067,0.9546434488265585,482.37915086746216,123.17177033424377,False,24
