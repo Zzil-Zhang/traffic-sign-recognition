@@ -1,15 +1,18 @@
-# 飞桨交通标志项目说明（评估与超参调优）
+# 飞桨交通标志项目说明（评估，超参调优，数据增强）
 
 主要功能：
 - 评估已训练的飞桨 CNN 模型，并与基准 SVM+HOG 模型对比（含混淆矩阵、预测样本、ROC 对比、F1 指标等）
 - 对 CNN 模型进行超参数调优与 K 折交叉验证（包含过拟合/欠拟合分析和可视化）
-
+- 数据增强：模拟复杂交通场景，批量生成数据，并保存为 `.npy` 文件
 ---
 
 ## 目录结构与关键文件
 
-请确保以下文件存在于同一项目根目录中（或在 README 指定的路径下）：
-
+请确保以下文件存在于同一项目根目录中：
+- 数据增强
+  - `data_augmentation.py` 测试数据增强效果
+  - `data_augment_run.py` 批量增数据
+  - 处理后的数据存放在 `/processed_data/` 下的 `X_*`、`y_*` `.npy`
 - 评估脚本与 Notebook
   - `evaluate_model_paddle.py`（命令行脚本，直接运行）
   - `evaluate-model.ipynb`（Jupyter 版本，分步骤执行）
@@ -21,7 +24,7 @@
   - `cnn_model_paddle.py`（模型结构定义：SimpleCNNPaddle / TrafficCNNPaddle 等）
   - `baseline_model_fixed.py`（基准 SVM+HOG 模型与评估工具）
   - 处理好的数据集（必须存在）
-    - `/home/aistudio/work/processed_data/` 目录下包含：
+    - `/processed_data/` 目录下包含：
       - `X_train.npy`, `y_train.npy`
       - `X_val.npy`, `y_val.npy`
       - `X_test.npy`, `y_test.npy`
@@ -32,8 +35,7 @@
       - `trained_models/my_traffic_classifier_paddle.pdparams`
       - 或项目根目录的 `my_traffic_classifier_paddle.pdparams`, `model_final.pdparams`, `my_traffic_classifier.pdparams`
   - 基准模型文件（可选，如不存在自动跳过基准评估）
-    - `/home/aistudio/work/fixed_baseline_model/model.pkl`
-
+    - `/fixed_baseline_model/model.pkl`
 ---
 
 ## 环境要求
@@ -53,7 +55,7 @@
 
 ---
 
-## 快速开始（命令行）
+## 快速开始
 
 1. 安装依赖（示例）
    ```bash
@@ -61,10 +63,13 @@
    pip install paddlepaddle numpy matplotlib seaborn scikit-learn ipython
    ```
 2. 准备数据与模型（确保路径与文件存在）
-   - 数据：`/home/aistudio/work/processed_data/` 下的 `X_*`、`y_*` `.npy`
-   - 基准：`/home/aistudio/work/fixed_baseline_model/model.pkl`（可选）
+   - 数据：`/processed_data/` 下的 `X_*`、`y_*` `.npy`
+   - 基准：`/fixed_baseline_model/model.pkl`
    - CNN 参数：参考前述模型文件路径
-3. 评估 CNN 与（可选）基准 SVM+HOG
+3. 数据增强
+   - `data_augmentation.py`
+   - `data_augment_run.py`
+3. 评估 CNN 与 基准 SVM+HOG
    ```bash
    python evaluate_model_paddle.py
    ```
@@ -83,13 +88,12 @@
    - `K折交叉验证`
    - `随机搜索`
    - `分层搜索`
+   
    输出保存到：
-   - `/home/aistudio/work/hyperparameter_tuning_result/`（各类图表与 JSON/CSV 结果）
-   - `/home/aistudio/work/recommended_parameters_for_memberB.txt`（给成员B的参数建议）
-
+   - `/hyperparameter_tuning_result/`（各类图表与 JSON/CSV 结果）
 ---
 
-## 快速开始（Jupyter Notebook）
+## Jupyter Notebook
 
 ### 评估 Notebook：`evaluate-model.ipynb`
 
@@ -107,31 +111,25 @@
 8. 指标对比与 ROC 曲线
 9. 一致性验证与汇总文件（保存 `evaluation_results/metrics_summary.json`）
 
-运行建议：
-- 使用 `Kernel -> Restart & Run All`，确保函数定义的单元格先于使用位置执行
-- 若出现 `NameError: compute_multiclass_auc not defined`，说明未运行包含该函数的单元格。请在“评估 CNN 模型”单元格之前执行“基础工具函数”（或任何包含该函数定义的单元格）
-
 ### 调优 Notebook：`hyperparameter_tuning_final_paddle.ipynb`
 
-按顺序运行：
-1. 设备设置（若有依图 GPU，将自动使用；否则回退到 CPU）
-2. 超参数调优器定义（包含 K 折交叉验证、随机搜索、分层搜索等）
-3. 执行相应函数进行调优
-4. 输出图表与结果文件位于 `/home/aistudio/work/hyperparameter_tuning_result/`
+1. 设备自动设置：会尝试使用依图 GPU（iluvatar_gpu:0），失败则回退到 CPU。无需手动修改即可运行。
+2. 按单元顺序从上到下执行（包含：数据加载 → 超参搜索器初始化 → K 折 CV / 随机搜索 / 分层搜索）。
+3. 输出图表与结果文件位于 `/hyperparameter_tuning_result/`
 
 ---
 
 ## 路径与参数约定
 
-- 数据目录（必须）：`/home/aistudio/work/processed_data/`
+- 数据目录（必须）：`/processed_data/`
   - 若你的数据目录不同，请修改脚本/Notebook 中相应路径（例如 `data_path` 变量）
-- 基准模型（可选）：`/home/aistudio/work/fixed_baseline_model/model.pkl`
+- 基准模型（可选）：`/fixed_baseline_model/model.pkl`
   - 若文件不存在，会自动跳过基准评估，不影响 CNN 评估流程
 - 模型参数文件（至少存在一个）
   - 脚本/Notebook 会自动搜索常见文件名；也可在 `evaluate_model()` 中显式传入路径
 - 输出目录
   - 评估：`evaluation_results/`（脚本自动创建）
-  - 调优：`/home/aistudio/work/hyperparameter_tuning_result/`（脚本自动创建）
+  - 调优：`/hyperparameter_tuning_result/`（脚本自动创建）
 
 ---
 
@@ -141,9 +139,6 @@
   - 日志类似：`无法设置依图加速卡设备，使用CPU`
   - 说明环境未安装或未识别自定义设备插件；脚本已自动回退 CPU，可正常运行
   - 若希望使用 GPU：请按平台要求安装 `paddle_custom_device` 并配置 `CUSTOM_DEVICE_ROOT`
-- `NameError: compute_multiclass_auc not defined`
-  - 说明未执行包含该函数定义的单元格（或该单元格被注释）
-  - 解决：在 Notebook 中，确保“基础工具函数”单元格已执行；或将该函数定义上移到更早的单元格，并执行
 - 找不到模型参数文件
   - 确保至少存在一个 `.pdparams` 文件，并在约定路径中；或修改评估函数里 `possible_models` 列表以匹配你的文件名
 - 找不到基准模型（不会阻塞）
