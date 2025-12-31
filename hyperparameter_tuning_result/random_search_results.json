@@ -1,0 +1,326 @@
+{
+    "model_type": "standard",
+    "best_params": {
+        "learning_rate": 0.005,
+        "batch_size": 16,
+        "optimizer_type": "adamw",
+        "iteration": 12,
+        "mean_accuracy": 0.992888582181549,
+        "std_accuracy": 0.0029180792533245845,
+        "fold_accuracies": [
+            0.9954995499549955,
+            0.9924992499249925,
+            0.994748687171793,
+            0.9942985746436609,
+            0.9873968492123031
+        ]
+    },
+    "best_score": 0.992888582181549,
+    "all_results": [
+        {
+            "learning_rate": 0.005,
+            "batch_size": 16,
+            "optimizer_type": "adamw",
+            "iteration": 12,
+            "mean_accuracy": 0.992888582181549,
+            "std_accuracy": 0.0029180792533245845,
+            "fold_accuracies": [
+                0.9954995499549955,
+                0.9924992499249925,
+                0.994748687171793,
+                0.9942985746436609,
+                0.9873968492123031
+            ]
+        },
+        {
+            "learning_rate": 0.01,
+            "batch_size": 32,
+            "optimizer_type": "adamw",
+            "iteration": 5,
+            "mean_accuracy": 0.991778583709834,
+            "std_accuracy": 0.0031897320564043888,
+            "fold_accuracies": [
+                0.9861986198619862,
+                0.9924992499249925,
+                0.995198799699925,
+                0.9906976744186047,
+                0.9942985746436609
+            ]
+        },
+        {
+            "learning_rate": 0.005,
+            "batch_size": 16,
+            "optimizer_type": "adam",
+            "iteration": 19,
+            "mean_accuracy": 0.9913584381693983,
+            "std_accuracy": 0.002732589307927298,
+            "fold_accuracies": [
+                0.9935493549354936,
+                0.9864986498649865,
+                0.9905476369092273,
+                0.9920480120030007,
+                0.9941485371342835
+            ]
+        },
+        {
+            "learning_rate": 0.001,
+            "batch_size": 32,
+            "optimizer_type": "adam",
+            "iteration": 17,
+            "mean_accuracy": 0.9907282221095329,
+            "std_accuracy": 0.0017038407833971068,
+            "fold_accuracies": [
+                0.9894989498949895,
+                0.9924992499249925,
+                0.9893473368342085,
+                0.9891972993248312,
+                0.9930982745686422
+            ]
+        },
+        {
+            "learning_rate": 0.01,
+            "batch_size": 16,
+            "optimizer_type": "adam",
+            "iteration": 16,
+            "mean_accuracy": 0.9906681620900274,
+            "std_accuracy": 0.0013403449643621386,
+            "fold_accuracies": [
+                0.9923492349234924,
+                0.9911491149114912,
+                0.9915978994748688,
+                0.9887471867966992,
+                0.9894973743435859
+            ]
+        },
+        {
+            "learning_rate": 0.01,
+            "batch_size": 16,
+            "optimizer_type": "adamw",
+            "iteration": 15,
+            "mean_accuracy": 0.9900380090522181,
+            "std_accuracy": 0.0026413104800751307,
+            "fold_accuracies": [
+                0.9917491749174917,
+                0.9915991599159916,
+                0.9915978994748688,
+                0.9848462115528882,
+                0.99039759939985
+            ]
+        },
+        {
+            "learning_rate": 0.0005,
+            "batch_size": 16,
+            "optimizer_type": "rmsprop",
+            "iteration": 11,
+            "mean_accuracy": 0.9855073624391697,
+            "std_accuracy": 0.002363128933388438,
+            "fold_accuracies": [
+                0.9836483648364837,
+                0.9834983498349835,
+                0.9846961740435108,
+                0.989947486871718,
+                0.9857464366091523
+            ]
+        },
+        {
+            "learning_rate": 0.0005,
+            "batch_size": 16,
+            "optimizer_type": "rmsprop",
+            "iteration": 1,
+            "mean_accuracy": 0.978666106670682,
+            "std_accuracy": 0.004237908358201285,
+            "fold_accuracies": [
+                0.9764476447644764,
+                0.9755475547554755,
+                0.9741935483870968,
+                0.981695423855964,
+                0.9854463615903976
+            ]
+        },
+        {
+            "learning_rate": 0.0005,
+            "batch_size": 32,
+            "optimizer_type": "adam",
+            "iteration": 8,
+            "mean_accuracy": 0.9744653445089446,
+            "std_accuracy": 0.005731948054805094,
+            "fold_accuracies": [
+                0.9765976597659766,
+                0.9657965796579658,
+                0.9824456114028507,
+                0.976894223555889,
+                0.9705926481620405
+            ]
+        },
+        {
+            "learning_rate": 0.0005,
+            "batch_size": 32,
+            "optimizer_type": "rmsprop",
+            "iteration": 14,
+            "mean_accuracy": 0.9651035531160017,
+            "std_accuracy": 0.008352901508246581,
+            "fold_accuracies": [
+                0.9510951095109511,
+                0.972997299729973,
+                0.9606901725431358,
+                0.9731432858214554,
+                0.9675918979744936
+            ]
+        },
+        {
+            "learning_rate": 0.001,
+            "batch_size": 32,
+            "optimizer_type": "rmsprop",
+            "iteration": 4,
+            "mean_accuracy": 0.943707758622824,
+            "std_accuracy": 0.07115813908632418,
+            "fold_accuracies": [
+                0.9657965796579658,
+                0.9731473147314732,
+                0.8025506376594148,
+                0.9852963240810203,
+                0.991747936984246
+            ]
+        },
+        {
+            "learning_rate": 0.01,
+            "batch_size": 32,
+            "optimizer_type": "rmsprop",
+            "iteration": 20,
+            "mean_accuracy": 0.8671676019815034,
+            "std_accuracy": 0.0994967419135036,
+            "fold_accuracies": [
+                0.8220822082208221,
+                0.8175817581758176,
+                0.9779444861215304,
+                0.9867966991747937,
+                0.7314328582145536
+            ]
+        },
+        {
+            "learning_rate": 0.0005,
+            "batch_size": 128,
+            "optimizer_type": "rmsprop",
+            "iteration": 3,
+            "mean_accuracy": 0.8104854476445394,
+            "std_accuracy": 0.03230060777826101,
+            "fold_accuracies": [
+                0.7748274827482748,
+                0.7976297629762976,
+                0.8021005251312828,
+                0.8066016504126031,
+                0.8712678169542386
+            ]
+        },
+        {
+            "learning_rate": 0.0005,
+            "batch_size": 128,
+            "optimizer_type": "rmsprop",
+            "iteration": 2,
+            "mean_accuracy": 0.7946398795918601,
+            "std_accuracy": 0.05028659145672548,
+            "fold_accuracies": [
+                0.8574857485748575,
+                0.7685268526852685,
+                0.7608402100525131,
+                0.7345836459114778,
+                0.8517629407351838
+            ]
+        },
+        {
+            "learning_rate": 0.0001,
+            "batch_size": 32,
+            "optimizer_type": "adamw",
+            "iteration": 13,
+            "mean_accuracy": 0.5172970020182813,
+            "std_accuracy": 0.04352579969364338,
+            "fold_accuracies": [
+                0.5732073207320733,
+                0.5042004200420042,
+                0.459264816204051,
+                0.5615903975993999,
+                0.4882220555138785
+            ]
+        },
+        {
+            "learning_rate": 0.0001,
+            "batch_size": 128,
+            "optimizer_type": "rmsprop",
+            "iteration": 18,
+            "mean_accuracy": 0.24787547471926485,
+            "std_accuracy": 0.04866530860624602,
+            "fold_accuracies": [
+                0.23912391239123912,
+                0.3106810681068107,
+                0.1671417854463616,
+                0.23945986496624155,
+                0.2829707426856714
+            ]
+        },
+        {
+            "learning_rate": 0.0001,
+            "batch_size": 128,
+            "optimizer_type": "adam",
+            "iteration": 9,
+            "mean_accuracy": 0.24451410782488597,
+            "std_accuracy": 0.056567143445242316,
+            "fold_accuracies": [
+                0.32433243324332434,
+                0.24302430243024303,
+                0.2837209302325581,
+                0.21005251312828208,
+                0.1614403600900225
+            ]
+        },
+        {
+            "learning_rate": 0.0005,
+            "batch_size": 32,
+            "optimizer_type": "sgd",
+            "iteration": 7,
+            "mean_accuracy": 0.23563398950547718,
+            "std_accuracy": 0.03617995913849041,
+            "fold_accuracies": [
+                0.20132013201320131,
+                0.295979597959796,
+                0.20375093773443362,
+                0.2199549887471868,
+                0.25716429107276817
+            ]
+        },
+        {
+            "learning_rate": 0.0001,
+            "batch_size": 128,
+            "optimizer_type": "rmsprop",
+            "iteration": 6,
+            "mean_accuracy": 0.23215384404156847,
+            "std_accuracy": 0.056764261083281774,
+            "fold_accuracies": [
+                0.18646864686468648,
+                0.2866786678667867,
+                0.29797449362340583,
+                0.15048762190547638,
+                0.23915978994748688
+            ]
+        },
+        {
+            "learning_rate": 0.0005,
+            "batch_size": 64,
+            "optimizer_type": "sgd",
+            "iteration": 10,
+            "mean_accuracy": 0.17664370187956532,
+            "std_accuracy": 0.020420672404699785,
+            "fold_accuracies": [
+                0.16891689168916893,
+                0.17971797179717972,
+                0.2006001500375094,
+                0.14193548387096774,
+                0.19204801200300076
+            ]
+        }
+    ],
+    "summary": {
+        "total_iterations": 20,
+        "mean_best_score": 0.9914843976520682,
+        "timestamp": "2025-12-31 12:06:02"
+    }
+}
