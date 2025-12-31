@@ -78,7 +78,7 @@ Windows（PowerShell）近似步骤：
    ```bash
    python data_augment_run.py
    ```
-   - 增强脚本会调用 `data_augmentation.py` 并输出新的 `.npy` 文件到 `processed_data/`（合并或单独保存，取决脚本参数）。
+   - 增强脚本会调用 `data_augment_run.py` 并输出新的 `.npy` 文件到 `processed_data/`（合并或单独保存，取决脚本参数）。
 
 5. 训练模型
   **执行方式**：
@@ -93,18 +93,14 @@ Windows（PowerShell）近似步骤：
      python hyperparameter_tuning_final_paddle.py
      ```
      该脚本提供交互式菜单用于 K 折交叉验证 / 随机搜索 / 分层搜索，并将输出保存在 `hyperparameter_tuning_result/`。
-6. 五折交叉验证 + 超参数调优（交互或脚本/Notebook）
-  ```bash
-   python hyperparameter_tuning_final_paddle.py
-   ```
-7. 评估模型
+6. 评估模型
    ```bash
    python evaluate_model_paddle.py
    ```
    - 评估输出保存在 `evaluation_results/`（混淆矩阵、ROC、预测样本示例等）。
    - 若仓库中存在基准模型（`fixed_baseline_model/model.pkl`），脚本会自动进行 SVM+HOG 对比并把结果放在 `baseline_evaluation_results/`。
 
-8. 可视化与结果
+7. 可视化与结果
    - 训练曲线保存在 `training_curves/`（若训练脚本保存了曲线）。
    - 训练好的参数在 `trained_models/`（常见文件名：`*_final_*.pdparams` 等）。
 
@@ -135,7 +131,7 @@ Windows（PowerShell）近似步骤：
 
 ---
 
-## 常见问题与解决办法（摘录 / 常见错误）
+## 常见问题与解决办法
 - 找不到 processed_data/*.npy：请先运行 `python data_preprocessing.py`；确认你的原始数据已放在 `data/` 下且路径变量未修改。
 - 找不到 .pdparams 文件：训练完成后文件保存在 `trained_models/`，脚本也会自动在常见名字中查找；如无请先完成训练。
 - 设备错误（Paddle custom device）：脚本会尝试设置 `iluvatar_gpu:0`，若失败会回退到 `cpu`。如想使用 GPU，请安装对应的 PaddlePaddle GPU 版本并设置 `paddle.set_device('gpu')`。
